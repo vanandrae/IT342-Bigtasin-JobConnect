@@ -1,4 +1,4 @@
-package edu.cit.bigtasin.jobconnect.config;
+package edu.cit.bigtasin.jobconnect;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
