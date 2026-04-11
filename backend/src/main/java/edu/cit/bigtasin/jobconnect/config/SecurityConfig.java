@@ -1,8 +1,8 @@
 package edu.cit.bigtasin.jobconnect.config;
 
-import edu.cit.bigtasin.jobconnect.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -29,21 +29,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                // Employer only endpoints
-                .requestMatchers("/api/jobs/employer/**", "/api/applications/job/**").hasRole("EMPLOYER")
-                // Job Seeker endpoints
-                .requestMatchers("/api/jobs/**", "/api/applications/user/**").hasRole("JOBSEEKER")
-                // All other endpoints require authentication
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                // Public endpoints - no authentication required
+                .antMatchers("/api/auth/**", "/h2-console/**").permitAll()
+                // Employer-only endpoints (Job Posting)
+                .antMatchers(HttpMethod.POST, "/api/jobs").hasRole("EMPLOYER")
+                .antMatchers(HttpMethod.PUT, "/api/jobs/**").hasRole("EMPLOYER")
+                .antMatchers(HttpMethod.DELETE, "/api/jobs/**").hasRole("EMPLOYER")
+                .antMatchers("/api/jobs/employer/**").hasRole("EMPLOYER")
+                // Job Seeker endpoints (View jobs)
+                .antMatchers(HttpMethod.GET, "/api/jobs/**").authenticated()
+                // All other requests need authentication
                 .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        
+                .and()
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
@@ -54,7 +59,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
   const menuItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
+    { path: '/dashboard', label: 'Dashboard', icon: '📊' },  // was '/'
     { path: '/post-job', label: 'Post a Job', icon: '➕' },
     { path: '/manage-jobs', label: 'Manage Listings', icon: '📋' },
   ];

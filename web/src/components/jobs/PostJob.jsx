@@ -25,11 +25,37 @@ const PostJob = () => {
     setLoading(true);
     setError('');
 
+    // Check if token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('You are not logged in. Please login again.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await jobAPI.create(formData);
-      navigate('/');
+      console.log('Posting job with data:', formData);
+      const response = await jobAPI.create(formData);
+      console.log('Job posted successfully:', response.data);
+      // Success - redirect to manage jobs
+      navigate('/manage-jobs');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to post job');
+      console.error('Error details:', err);
+      console.error('Response status:', err.response?.status);
+      console.error('Response data:', err.response?.data);
+
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please login again.');
+        // Clear localStorage and redirect to login after 2 seconds
+        setTimeout(() => {
+          localStorage.clear();
+          navigate('/login');
+        }, 2000);
+      } else if (err.response?.status === 403) {
+        setError('You do not have permission to post jobs. Only employers can post jobs.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to post job. Please try again.');
+      }
       setLoading(false);
     }
   };
@@ -152,7 +178,7 @@ const PostJob = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/manage-jobs')}
             className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
           >
             Cancel

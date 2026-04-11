@@ -1,91 +1,176 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jobAPI } from '../../services/api';
 
-const RecentJobs = () => {
+const PostJob = () => {
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    salaryRange: '',
+    location: '',
+    employmentType: 'FULL_TIME',
+    status: 'OPEN',
+  });
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const fetchJobs = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
-      const response = await jobAPI.getEmployerJobs();
-      setJobs(response.data || []);
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-    } finally {
+      const response = await jobAPI.create(formData);
+      console.log('Job posted successfully:', response.data);
+      // Redirect to manage jobs on success
+      navigate('/manage-jobs');
+    } catch (err) {
+      console.error('Error posting job:', err);
+      if (err.response?.status === 401) {
+        setError('Session expired. Please login again.');
+        // Don't auto-redirect, let user see the error
+      } else if (err.response?.status === 403) {
+        setError('You do not have permission to post jobs. Please login as an employer.');
+      } else {
+        setError(err.response?.data?.message || 'Failed to post job');
+      }
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
-      try {
-        await jobAPI.delete(id);
-        fetchJobs();
-      } catch (error) {
-        console.error('Error deleting job:', error);
-      }
-    }
-  };
-
-  if (loading) {
-    return <div>Loading jobs...</div>;
-  }
-
   return (
-    <div className="bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b">
-        <h2 className="text-lg font-semibold">Recent Job Postings</h2>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Applicants</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {jobs.map((job) => (
-              <tr key={job.id}>
-                <td className="px-6 py-4">{job.title}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    job.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {job.status === 'OPEN' ? 'Active' : 'Closed'}
-                  </span>
-                </td>
-                <td className="px-6 py-4">{job.applicantCount || 0}</td>
-                <td className="px-6 py-4 space-x-2">
-                  <button
-                    onClick={() => navigate(`/applicants/${job.id}`)}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleDelete(job.id)}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Post a New Job</h1>
+
+      {error && (
+        <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Job Title *
+          </label>
+          <input
+            type="text"
+            name="title"
+            required
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            placeholder="e.g., Senior Software Engineer"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Category *
+          </label>
+          <select
+            name="category"
+            required
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Select category</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Design">Design</option>
+            <option value="Product">Product</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Sales">Sales</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Employment Type *
+          </label>
+          <select
+            name="employmentType"
+            required
+            value={formData.employmentType}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="FULL_TIME">Full Time</option>
+            <option value="PART_TIME">Part Time</option>
+            <option value="CONTRACT">Contract</option>
+            <option value="REMOTE">Remote</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Salary Range
+          </label>
+          <input
+            type="text"
+            name="salaryRange"
+            value={formData.salaryRange}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            placeholder="e.g., $80,000 - $120,000"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Location *
+          </label>
+          <input
+            type="text"
+            name="location"
+            required
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            placeholder="e.g., Manila, Philippines or Remote"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Job Description *
+          </label>
+          <textarea
+            name="description"
+            required
+            rows={6}
+            value={formData.description}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Describe the role, responsibilities, and requirements..."
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
+          >
+            {loading ? 'Posting...' : 'Post Job'}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/manage-jobs')}
+            className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
 
-export default RecentJobs;
+export default PostJob;

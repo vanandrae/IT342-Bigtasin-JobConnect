@@ -1,11 +1,6 @@
 package edu.cit.bigtasin.jobconnect.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +26,7 @@ public class User {
 
     @Column(name = "full_name")
     private String fullName;
-    
+
     @Column(nullable = false)
     private String role = "JOBSEEKER";
 }

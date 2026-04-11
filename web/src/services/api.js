@@ -18,28 +18,51 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Auth APIs
+// ==================== AUTH APIs ====================
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   getMe: () => api.get('/auth/me'),
 };
 
-// Job APIs
+// ==================== JOB APIs ====================
 export const jobAPI = {
+  // Public / Job Seeker endpoints
   getAll: () => api.get('/jobs'),
   getById: (id) => api.get(`/jobs/${id}`),
+  search: (params) => api.get('/jobs/search', { params }),
+
+  // Employer endpoints
   create: (jobData) => api.post('/jobs', jobData),
   update: (id, jobData) => api.put(`/jobs/${id}`, jobData),
   delete: (id) => api.delete(`/jobs/${id}`),
   getEmployerJobs: () => api.get('/jobs/employer/me'),
 };
 
-// Application APIs
+// ==================== APPLICATION APIs ====================
 export const applicationAPI = {
+  // For job seekers
+  apply: (jobId) => api.post(`/applications?jobId=${jobId}`),
+  getUserApplications: () => api.get('/applications/user/me'),
+  withdraw: (applicationId) => api.delete(`/applications/${applicationId}`),
+
+  // For employers
   getByJob: (jobId) => api.get(`/applications/job/${jobId}`),
-  updateStatus: (applicationId, status) => 
+  updateStatus: (applicationId, status) =>
     api.patch(`/applications/${applicationId}/status`, { status }),
+};
+
+// ==================== PROFILE APIs ====================
+export const profileAPI = {
+  getProfile: () => api.get('/profile'),
+  updateProfile: (profileData) => api.put('/profile', profileData),
+  uploadResume: (file) => {
+    const formData = new FormData();
+    formData.append('resume', file);
+    return api.post('/profile/resume', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export default api;

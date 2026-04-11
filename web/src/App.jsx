@@ -7,13 +7,11 @@ import PostJob from './components/jobs/PostJob';
 import ManageJobs from './components/jobs/ManageJobs';
 import ApplicantsList from './components/applications/ApplicantsList';
 import Layout from './components/layout/Layout';
+import Homepage from './components/Homepage';
 
-// Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  if (!token) {
-    return <Navigate to="/login" />;
-  }
+  if (!token) return <Navigate to="/login" />;
   return children;
 };
 
@@ -21,9 +19,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Homepage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute>
             <Layout>
               <Dashboard />
