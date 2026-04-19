@@ -30,31 +30,19 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
-            // Check if username exists
             if (userRepository.findByUsername(user.getUsername()).isPresent()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Username already exists"));
             }
-            
-            // Check if email exists
             if (userRepository.findByEmail(user.getEmail()).isPresent()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));
             }
-            
-            // Set default role if not provided
             if (user.getRole() == null || user.getRole().isEmpty()) {
                 user.setRole("JOBSEEKER");
             }
-            
-            // Encrypt password
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            
             User savedUser = userRepository.save(user);
-            savedUser.setPassword(null); // Don't return password
-            
-            return ResponseEntity.ok(Map.of(
-                "message", "User registered successfully!",
-                "user", savedUser
-            ));
+            savedUser.setPassword(null);
+            return ResponseEntity.ok(Map.of("message", "User registered successfully!", "user", savedUser));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("message", "Registration failed: " + e.getMessage()));
         }
@@ -66,23 +54,20 @@ public class AuthController {
         String password = loginRequest.get("password");
         
         Optional<User> userOpt = userRepository.findByUsername(username);
-        
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials"));
         }
         
         User user = userOpt.get();
-        
         if (!passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials"));
         }
         
-        // Generate JWT token
         String token = Jwts.builder()
             .setSubject(user.getUsername())
             .claim("role", user.getRole())
             .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 24 hours
+            .setExpiration(new Date(System.currentTimeMillis() + 86400000))
             .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes())
             .compact();
         
@@ -98,8 +83,6 @@ public class AuthController {
     
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
-        // This endpoint returns the current user based on token
-        // Implementation depends on your JWT parsing
         return ResponseEntity.ok(Map.of("message", "User info endpoint"));
     }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jobAPI, applicationAPI } from '../../services/api';
+import Icon from '../common/Icon';
 
 const ApplicantDashboard = () => {
   const navigate = useNavigate();
@@ -21,20 +22,17 @@ const ApplicantDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch all jobs
       const jobsResponse = await jobAPI.getAll();
       setJobs(jobsResponse.data || []);
-
-      // Fetch user's applications
+      
       const applicationsRes = await applicationAPI.getUserApplications();
       const applications = applicationsRes.data || [];
       setAppliedJobs(applications);
-
-      // Get favorite jobs from localStorage
+      
       const savedFavorites = JSON.parse(localStorage.getItem('favoriteJobs') || '[]');
       const favoriteJobDetails = (jobsResponse.data || []).filter(job => savedFavorites.includes(job.id));
       setFavoriteJobs(favoriteJobDetails);
-
+      
       setStats({
         appliedJobs: applications.length,
         favoriteJobs: savedFavorites.length,
@@ -65,7 +63,7 @@ const ApplicantDashboard = () => {
     const savedFavorites = JSON.parse(localStorage.getItem('favoriteJobs') || '[]');
     let newFavorites;
     let message;
-
+    
     if (savedFavorites.includes(jobId)) {
       newFavorites = savedFavorites.filter(id => id !== jobId);
       message = 'Removed from favorites';
@@ -89,11 +87,11 @@ const ApplicantDashboard = () => {
   };
 
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'applied', label: 'Applied Jobs', icon: '📝' },
-    { id: 'favorite', label: 'Favorite Jobs', icon: '⭐' },
-    { id: 'alerts', label: 'Job Alert', icon: '🔔' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
+    { id: 'overview', label: 'Overview', icon: 'dashboard' },
+    { id: 'applied', label: 'Applied Jobs', icon: 'document' },
+    { id: 'favorite', label: 'Favorite Jobs', icon: 'star' },
+    { id: 'alerts', label: 'Job Alert', icon: 'bell' },
+    { id: 'settings', label: 'Settings', icon: 'setting' },
   ];
 
   const isJobApplied = (jobId) => {
@@ -115,9 +113,7 @@ const ApplicantDashboard = () => {
       <aside className="w-72 bg-white shadow-lg min-h-screen fixed left-0 top-0 overflow-y-auto">
         <div className="p-6 border-b">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">J</span>
-            </div>
+            <Icon name="briefcase" className="w-10 h-10" />
             <span className="text-2xl font-bold text-red-600">JobConnect</span>
           </div>
         </div>
@@ -133,14 +129,14 @@ const ApplicantDashboard = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <Icon name={item.icon} className="w-5 h-5" />
               <span className="font-medium">{item.label}</span>
             </button>
           ))}
         </nav>
         <div className="absolute bottom-0 w-72 p-4 border-t bg-white">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
-            <span className="text-xl">🚪</span>
+            <Icon name="logout" className="w-5 h-5" />
             <span className="font-medium">Log-out</span>
           </button>
         </div>
@@ -158,16 +154,31 @@ const ApplicantDashboard = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-blue-50 rounded-lg p-6 flex justify-between items-center">
-                <div><div className="text-3xl font-bold text-gray-800">{stats.appliedJobs}</div><div className="text-sm text-gray-600">Applied jobs</div></div>
-                <div className="bg-white p-3 rounded-lg"><span className="text-2xl">📋</span></div>
+                <div>
+                  <div className="text-3xl font-bold text-gray-800">{stats.appliedJobs}</div>
+                  <div className="text-sm text-gray-600">Applied jobs</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg">
+                  <Icon name="document" className="w-6 h-6" />
+                </div>
               </div>
               <div className="bg-yellow-50 rounded-lg p-6 flex justify-between items-center">
-                <div><div className="text-3xl font-bold text-gray-800">{stats.favoriteJobs}</div><div className="text-sm text-gray-600">Favorite jobs</div></div>
-                <div className="bg-white p-3 rounded-lg"><span className="text-2xl">⭐</span></div>
+                <div>
+                  <div className="text-3xl font-bold text-gray-800">{stats.favoriteJobs}</div>
+                  <div className="text-sm text-gray-600">Favorite jobs</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg">
+                  <Icon name="star" className="w-6 h-6" />
+                </div>
               </div>
               <div className="bg-green-50 rounded-lg p-6 flex justify-between items-center">
-                <div><div className="text-3xl font-bold text-gray-800">{stats.jobAlerts}</div><div className="text-sm text-gray-600">Job Alerts</div></div>
-                <div className="bg-white p-3 rounded-lg"><span className="text-2xl">🔔</span></div>
+                <div>
+                  <div className="text-3xl font-bold text-gray-800">{stats.jobAlerts}</div>
+                  <div className="text-sm text-gray-600">Job Alerts</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg">
+                  <Icon name="bell" className="w-6 h-6" />
+                </div>
               </div>
             </div>
 
@@ -177,36 +188,47 @@ const ApplicantDashboard = () => {
               {jobs.map((job) => (
                 <div key={job.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">{job.title}</h3>
-                  <p className="text-gray-600 mb-2">{job.employerName || 'Company'}</p>
-                  <p className="text-gray-500 text-sm mb-2">📍 {job.location}</p>
-                  <p className="text-gray-500 text-sm mb-2">💼 {job.employmentType}</p>
-                  <p className="text-blue-600 font-semibold mb-4">{job.salaryRange}</p>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2 text-gray-600 mb-2">
+                    <Icon name="building" className="w-4 h-4" />
+                    <span className="text-sm">{job.employerName || 'Company'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
+                    <Icon name="location" className="w-4 h-4" />
+                    <span>{job.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
+                    <Icon name="money" className="w-4 h-4" />
+                    <span>{job.salaryRange}</span>
+                  </div>
+                  <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleViewJobDetails(job)}
-                      className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200"
+                      className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200 flex items-center justify-center gap-1"
                     >
+                      <Icon name="view" className="w-4 h-4" />
                       View Details
                     </button>
                     {isJobApplied(job.id) ? (
-                      <button className="flex-1 bg-green-100 text-green-600 px-3 py-2 rounded text-sm" disabled>
-                        Applied ✓
+                      <button className="flex-1 bg-green-100 text-green-600 px-3 py-2 rounded text-sm flex items-center justify-center gap-1" disabled>
+                        <Icon name="checked" className="w-4 h-4" />
+                        Applied
                       </button>
                     ) : (
                       <button
                         onClick={() => handleApply(job.id)}
-                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 flex items-center justify-center gap-1"
                       >
+                        <Icon name="paper-plane" className="w-4 h-4" />
                         Apply Now
                       </button>
                     )}
                     <button
                       onClick={() => handleFavorite(job.id)}
-                      className={`px-3 py-2 rounded text-sm border ${
+                      className={`px-3 py-2 rounded text-sm border flex items-center justify-center ${
                         isJobFavorited(job.id) ? 'bg-yellow-100 border-yellow-400' : 'bg-white border-gray-300'
                       }`}
                     >
-                      {isJobFavorited(job.id) ? '★' : '☆'}
+                      <Icon name="star" className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -229,9 +251,17 @@ const ApplicantDashboard = () => {
                   <div key={app.id} className="bg-white rounded-lg shadow p-6 flex justify-between items-center">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800">{app.jobTitle}</h3>
-                      <p className="text-gray-600">{app.employerName}</p>
-                      <p className="text-gray-500 text-sm">📍 {app.jobLocation}</p>
-                      <p className="text-gray-500 text-sm">Applied on: {new Date(app.appliedAt).toLocaleDateString()}</p>
+                      <div className="flex items-center gap-4 mt-1">
+                        <div className="flex items-center gap-1 text-gray-600 text-sm">
+                          <Icon name="building" className="w-4 h-4" />
+                          <span>{app.employerName}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-600 text-sm">
+                          <Icon name="location" className="w-4 h-4" />
+                          <span>{app.jobLocation}</span>
+                        </div>
+                      </div>
+                      <p className="text-gray-500 text-sm mt-2">Applied on: {new Date(app.appliedAt).toLocaleDateString()}</p>
                     </div>
                     <div>
                       <span className={`px-3 py-1 rounded-full text-sm ${
@@ -259,14 +289,29 @@ const ApplicantDashboard = () => {
                 {favoriteJobs.map((job) => (
                   <div key={job.id} className="bg-white rounded-lg shadow p-6">
                     <h3 className="text-lg font-semibold text-gray-800">{job.title}</h3>
-                    <p className="text-gray-600">{job.employerName}</p>
-                    <p className="text-gray-500 text-sm">{job.location}</p>
+                    <div className="flex items-center gap-2 text-gray-600 mt-1">
+                      <Icon name="building" className="w-4 h-4" />
+                      <span className="text-sm">{job.employerName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
+                      <Icon name="location" className="w-4 h-4" />
+                      <span>{job.location}</span>
+                    </div>
                     <div className="flex gap-2 mt-4">
-                      <button onClick={() => handleViewJobDetails(job)} className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm">View Details</button>
+                      <button onClick={() => handleViewJobDetails(job)} className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm flex items-center justify-center gap-1">
+                        <Icon name="view" className="w-4 h-4" />
+                        View Details
+                      </button>
                       {isJobApplied(job.id) ? (
-                        <button className="flex-1 bg-green-100 text-green-600 px-3 py-2 rounded text-sm" disabled>Applied ✓</button>
+                        <button className="flex-1 bg-green-100 text-green-600 px-3 py-2 rounded text-sm flex items-center justify-center gap-1" disabled>
+                          <Icon name="checked" className="w-4 h-4" />
+                          Applied
+                        </button>
                       ) : (
-                        <button onClick={() => handleApply(job.id)} className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm">Apply Now</button>
+                        <button onClick={() => handleApply(job.id)} className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm flex items-center justify-center gap-1">
+                          <Icon name="paper-plane" className="w-4 h-4" />
+                          Apply Now
+                        </button>
                       )}
                     </div>
                   </div>
@@ -283,7 +328,10 @@ const ApplicantDashboard = () => {
               <p className="text-gray-600 mb-4">Get notified when new jobs match your preferences.</p>
               <div className="flex gap-4">
                 <input type="text" placeholder="Enter job keywords (e.g., Software Engineer)" className="flex-1 px-4 py-2 border rounded-lg" />
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg">Create Alert</button>
+                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2">
+                  <Icon name="bell" className="w-4 h-4" />
+                  Create Alert
+                </button>
               </div>
             </div>
           </div>
@@ -293,10 +341,22 @@ const ApplicantDashboard = () => {
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Settings</h2>
             <div className="bg-white rounded-lg p-6 space-y-4">
-              <div><label className="block text-sm font-medium mb-1">Full Name</label><input type="text" defaultValue={user.fullName || ''} className="w-full px-4 py-2 border rounded-lg" /></div>
-              <div><label className="block text-sm font-medium mb-1">Email</label><input type="email" defaultValue={user.email || ''} className="w-full px-4 py-2 border rounded-lg" /></div>
-              <div><label className="block text-sm font-medium mb-1">Resume</label><input type="file" className="w-full px-4 py-2 border rounded-lg" accept=".pdf,.doc,.docx" /></div>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg">Save Changes</button>
+              <div>
+                <label className="block text-sm font-medium mb-1">Full Name</label>
+                <input type="text" defaultValue={user.fullName || ''} className="w-full px-4 py-2 border rounded-lg" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input type="email" defaultValue={user.email || ''} className="w-full px-4 py-2 border rounded-lg" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Resume</label>
+                <input type="file" className="w-full px-4 py-2 border rounded-lg" accept=".pdf,.doc,.docx" />
+              </div>
+              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2">
+                <Icon name="checked" className="w-4 h-4" />
+                Save Changes
+              </button>
             </div>
           </div>
         )}
@@ -307,24 +367,44 @@ const ApplicantDashboard = () => {
             <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-gray-800">{selectedJob.title}</h2>
-                <button onClick={() => setShowJobModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+                <button onClick={() => setShowJobModal(false)} className="text-gray-500 hover:text-gray-700">
+                  <Icon name="close" className="w-6 h-6" />
+                </button>
               </div>
               <div className="space-y-4">
-                <div><p className="text-gray-600"><strong>Company:</strong> {selectedJob.employerName || 'Company'}</p></div>
-                <div><p className="text-gray-600"><strong>Location:</strong> {selectedJob.location}</p></div>
-                <div><p className="text-gray-600"><strong>Employment Type:</strong> {selectedJob.employmentType}</p></div>
-                <div><p className="text-gray-600"><strong>Salary Range:</strong> {selectedJob.salaryRange}</p></div>
-                <div><p className="text-gray-600"><strong>Category:</strong> {selectedJob.category}</p></div>
-                <div><p className="text-gray-700"><strong>Description:</strong></p><p className="text-gray-600 whitespace-pre-wrap">{selectedJob.description}</p></div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Icon name="building" className="w-5 h-5" />
+                  <span><strong>Company:</strong> {selectedJob.employerName || 'Company'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Icon name="location" className="w-5 h-5" />
+                  <span><strong>Location:</strong> {selectedJob.location}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Icon name="money" className="w-5 h-5" />
+                  <span><strong>Salary Range:</strong> {selectedJob.salaryRange}</span>
+                </div>
+                <div className="text-gray-700">
+                  <strong>Description:</strong>
+                  <p className="text-gray-600 mt-2 whitespace-pre-wrap">{selectedJob.description}</p>
+                </div>
               </div>
               <div className="flex gap-3 mt-6 pt-4 border-t">
                 {isJobApplied(selectedJob.id) ? (
-                  <button className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded-lg" disabled>Already Applied ✓</button>
+                  <button className="flex-1 bg-green-100 text-green-600 px-4 py-2 rounded-lg flex items-center justify-center gap-2" disabled>
+                    <Icon name="checked" className="w-5 h-5" />
+                    Already Applied
+                  </button>
                 ) : (
-                  <button onClick={() => { handleApply(selectedJob.id); setShowJobModal(false); }} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Apply Now</button>
+                  <button onClick={() => { handleApply(selectedJob.id); setShowJobModal(false); }} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700">
+                    <Icon name="paper-plane" className="w-5 h-5" />
+                    Apply Now
+                  </button>
                 )}
-                <button onClick={() => { handleFavorite(selectedJob.id); }} className={`flex-1 px-4 py-2 rounded-lg border ${isJobFavorited(selectedJob.id) ? 'bg-yellow-100 border-yellow-400' : 'bg-white border-gray-300'}`}> {isJobFavorited(selectedJob.id) ? '★ Favorited' : '☆ Save to Favorites'}</button>
-                <button onClick={() => setShowJobModal(false)} className="px-4 py-2 rounded-lg border border-gray-300">Close</button>
+                <button onClick={() => setShowJobModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 flex items-center gap-2">
+                  <Icon name="close" className="w-4 h-4" />
+                  Close
+                </button>
               </div>
             </div>
           </div>

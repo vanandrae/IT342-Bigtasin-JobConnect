@@ -9,31 +9,32 @@ public class Application {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "job_id", nullable = false)
+    
+    @Column(name = "job_id")
     private Long jobId;
-
-    @Column(name = "seeker_id", nullable = false)
+    
+    @Column(name = "seeker_id")
     private Long seekerId;
-
+    
     private String status = "PENDING";
-
+    
     @Column(name = "applied_at")
     private LocalDateTime appliedAt = LocalDateTime.now();
 
-    // Getters and Setters
+    // Default constructor
+    public Application() {}
+
+    // Getters
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
     public Long getJobId() { return jobId; }
-    public void setJobId(Long jobId) { this.jobId = jobId; }
-
     public Long getSeekerId() { return seekerId; }
-    public void setSeekerId(Long seekerId) { this.seekerId = seekerId; }
-
     public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
     public LocalDateTime getAppliedAt() { return appliedAt; }
+
+    // Setters
+    public void setId(Long id) { this.id = id; }
+    public void setJobId(Long jobId) { this.jobId = jobId; }
+    public void setSeekerId(Long seekerId) { this.seekerId = seekerId; }
+    public void setStatus(String status) { this.status = status; }
     public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
 }
