@@ -1,6 +1,5 @@
-package edu.cit.bigtasin.jobconnect.repository;
+package edu.cit.bigtasin.jobconnect.features.job;
 
-import edu.cit.bigtasin.jobconnect.model.Job;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

@@ -1,4 +1,4 @@
-package edu.cit.bigtasin.jobconnect.config;
+package edu.cit.bigtasin.jobconnect.shared.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

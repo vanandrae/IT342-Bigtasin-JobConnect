@@ -1,4 +1,4 @@
-package edu.cit.bigtasin.jobconnect.model;
+package edu.cit.bigtasin.jobconnect.features.job;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

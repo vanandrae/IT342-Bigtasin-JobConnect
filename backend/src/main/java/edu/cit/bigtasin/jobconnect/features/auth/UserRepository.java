@@ -1,11 +1,9 @@
-package edu.cit.bigtasin.jobconnect.repository;
+package edu.cit.bigtasin.jobconnect.features.auth;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import edu.cit.bigtasin.jobconnect.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

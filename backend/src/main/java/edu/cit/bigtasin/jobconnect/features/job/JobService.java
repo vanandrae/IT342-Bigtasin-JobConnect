@@ -1,9 +1,7 @@
-package edu.cit.bigtasin.jobconnect.service;
+package edu.cit.bigtasin.jobconnect.features.job;
 
-import edu.cit.bigtasin.jobconnect.model.Job;
-import edu.cit.bigtasin.jobconnect.model.User;
-import edu.cit.bigtasin.jobconnect.repository.JobRepository;
-import edu.cit.bigtasin.jobconnect.repository.UserRepository;
+import edu.cit.bigtasin.jobconnect.features.auth.User;
+import edu.cit.bigtasin.jobconnect.features.auth.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

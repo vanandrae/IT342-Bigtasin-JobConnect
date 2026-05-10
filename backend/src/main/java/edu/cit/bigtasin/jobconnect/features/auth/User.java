@@ -1,4 +1,4 @@
-package edu.cit.bigtasin.jobconnect.model;
+package edu.cit.bigtasin.jobconnect.features.auth;
 
 import javax.persistence.*;
 

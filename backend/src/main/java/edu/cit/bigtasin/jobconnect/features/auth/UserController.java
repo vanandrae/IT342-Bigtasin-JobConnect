@@ -1,4 +1,4 @@
-package edu.cit.bigtasin.jobconnect.controller;
+package edu.cit.bigtasin.jobconnect.features.auth;
 
 import org.springframework.web.bind.annotation.*;
 

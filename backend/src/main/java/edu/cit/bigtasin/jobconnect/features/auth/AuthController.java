@@ -1,7 +1,5 @@
-package edu.cit.bigtasin.jobconnect.controller;
+package edu.cit.bigtasin.jobconnect.features.auth;
 
-import edu.cit.bigtasin.jobconnect.model.User;
-import edu.cit.bigtasin.jobconnect.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.http.ResponseEntity;
