@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { jobAPI } from '../../services/api';
+import { jobAPI } from '../../../services/api';
 
 const JobSeekerJobs = () => {
   const [jobs, setJobs] = useState([]);

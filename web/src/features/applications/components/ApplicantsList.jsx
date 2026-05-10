@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { applicationAPI, jobAPI } from '../../services/api';
+import { applicationAPI, jobAPI } from '../../../services/api';
 
 const ApplicantsList = () => {
   const { jobId } = useParams();

@@ -2,8 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth feature
-import Register from './features/auth/components/Register';
 import Login from './features/auth/components/Login';
+import Register from './features/auth/components/Register';
 
 // Dashboard feature
 import Dashboard from './features/dashboard/components/Dashboard';
@@ -27,45 +27,45 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-      <Router>
-        <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/post-job" element={
-            <ProtectedRoute>
-              <Layout>
-                <PostJob />
-              </Layout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/manage-jobs" element={
-            <ProtectedRoute>
-              <Layout>
-                <ManageJobs />
-              </Layout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/applicants/:jobId" element={
-            <ProtectedRoute>
-              <Layout>
-                <ApplicantsList />
-              </Layout>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </Router>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/post-job" element={
+          <ProtectedRoute>
+            <Layout>
+              <PostJob />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/manage-jobs" element={
+          <ProtectedRoute>
+            <Layout>
+              <ManageJobs />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/applicants/:jobId" element={
+          <ProtectedRoute>
+            <Layout>
+              <ApplicantsList />
+            </Layout>
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </Router>
   );
 }
 

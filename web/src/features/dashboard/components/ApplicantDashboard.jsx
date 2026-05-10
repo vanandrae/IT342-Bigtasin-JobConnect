@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jobAPI, applicationAPI } from '../../services/api';
-import Icon from '../common/Icon';
+import { jobAPI, applicationAPI } from '../../../services/api';
+import Icon from '../../shared/components/Icon';
 
 const ApplicantDashboard = () => {
   const navigate = useNavigate();

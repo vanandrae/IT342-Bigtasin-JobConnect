@@ -1,5 +1,4 @@
-package edu.cit.bigtasin.jobconnect.service;
-
+package edu.cit.bigtasin.jobconnect.features.shared.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
