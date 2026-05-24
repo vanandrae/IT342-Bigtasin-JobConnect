@@ -23,6 +23,11 @@ public class User {
     @Column(name = "full_name")
     private String fullName;
 
+
+    @Column(name = "resume_url")
+    private String resumeUrl;
+    public String getResumeUrl() { return resumeUrl; }
+    public void setResumeUrl(String resumeUrl) { this.resumeUrl = resumeUrl; }
     // Default constructor
     public User() {}
 

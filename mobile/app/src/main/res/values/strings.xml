@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">JobConnect</string>
+    <string-array name="roles">
+    <item>Job Seeker</item>
+    <item>Employer</item>
+    </string-array>
+</resources>

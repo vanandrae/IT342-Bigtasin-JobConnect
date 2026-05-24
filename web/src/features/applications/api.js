@@ -19,3 +19,11 @@ export const applicationAPI = {
     getByJob: (jobId) => api.get(`/applications/job/${jobId}`),
     updateStatus: (applicationId, status) => api.patch(`/applications/${applicationId}/status`, { status }),
 };
+
+// ==================== FAVORITE APIs ====================
+export const favoriteAPI = {
+    getFavorites: () => api.get('/favorites'),
+    addFavorite: (jobId) => api.post(`/favorites/${jobId}`),
+    removeFavorite: (jobId) => api.delete(`/favorites/${jobId}`),
+    checkFavorite: (jobId) => api.get(`/favorites/check/${jobId}`),
+};

@@ -10,7 +10,7 @@ const Layout = ({ children }) => {
       <Navbar />
       <div className="flex">
         {role === 'EMPLOYER' && <Sidebar />}
-        <main className="flex-1 p-6">
+        <main className={`flex-1 p-6 ${role === 'EMPLOYER' ? 'ml-72' : ''}`}>
           {children}
         </main>
       </div>

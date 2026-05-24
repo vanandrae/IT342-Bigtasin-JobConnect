@@ -36,7 +36,18 @@ const EmployerDashboard = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading dashboard...</div>;
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Icon name="briefcase" className="w-12 h-12" />
+            <span className="text-3xl font-bold text-red-600">JobConnect</span>
+          </div>
+          <div className="inline-block w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-2 text-gray-500">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -51,21 +62,33 @@ const EmployerDashboard = () => {
         </div>
         <nav className="p-4">
           <div className="text-xs text-gray-400 mb-4 px-4">EMPLOYER DASHBOARD</div>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 bg-blue-50 text-blue-600 border-l-4 border-blue-600">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 bg-blue-50 text-blue-600 border-l-4 border-blue-600"
+          >
             <Icon name="dashboard" className="w-5 h-5" />
             <span className="font-medium">Overview</span>
           </button>
-          <button onClick={() => navigate('/post-job')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 text-gray-600 hover:bg-gray-100">
+          <button 
+            onClick={() => navigate('/post-job')} 
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 text-gray-600 hover:bg-gray-100"
+          >
             <Icon name="plus" className="w-5 h-5" />
             <span className="font-medium">Post a Job</span>
           </button>
-          <button onClick={() => navigate('/manage-jobs')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 text-gray-600 hover:bg-gray-100">
+          <button 
+            onClick={() => navigate('/manage-jobs')} 
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 text-gray-600 hover:bg-gray-100"
+          >
             <Icon name="list" className="w-5 h-5" />
             <span className="font-medium">Manage Listings</span>
           </button>
         </nav>
         <div className="absolute bottom-0 w-72 p-4 border-t bg-white">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100"
+          >
             <Icon name="logout" className="w-5 h-5" />
             <span className="font-medium">Log-out</span>
           </button>

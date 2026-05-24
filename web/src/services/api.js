@@ -52,6 +52,14 @@ export const applicationAPI = {
     api.patch(`/applications/${applicationId}/status`, { status }),
 };
 
+// ==================== FAVORITE APIs ====================
+export const favoriteAPI = {
+  getFavorites: () => api.get('/favorites'),
+  addFavorite: (jobId) => api.post(`/favorites/${jobId}`),
+  removeFavorite: (jobId) => api.delete(`/favorites/${jobId}`),
+  checkFavorite: (jobId) => api.get(`/favorites/check/${jobId}`),
+};
+
 // ==================== PROFILE APIs ====================
 export const profileAPI = {
   getProfile: () => api.get('/profile'),

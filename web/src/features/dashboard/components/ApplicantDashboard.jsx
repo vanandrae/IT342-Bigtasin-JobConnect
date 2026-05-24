@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jobAPI, applicationAPI } from '../../../services/api';
+import { jobAPI, applicationAPI, favoriteAPI } from '../../../services/api';
 import Icon from '../../shared/components/Icon';
+import ProfileContent from './ProfileContent';
 
 const ApplicantDashboard = () => {
   const navigate = useNavigate();
@@ -9,15 +10,47 @@ const ApplicantDashboard = () => {
   const [jobs, setJobs] = useState([]);
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [favoriteJobs, setFavoriteJobs] = useState([]);
+  const [favoriteIds, setFavoriteIds] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [showJobModal, setShowJobModal] = useState(false);
-  const [stats, setStats] = useState({ appliedJobs: 0, favoriteJobs: 0, jobAlerts: 5 });
+  const [jobAlerts, setJobAlerts] = useState([]);
+  const [matchingAlertJobs, setMatchingAlertJobs] = useState([]);
+  const [stats, setStats] = useState({ appliedJobs: 0, favoriteJobs: 0, jobAlerts: 0 });
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  // Load saved alerts from localStorage on component mount
   useEffect(() => {
-    fetchDashboardData();
-  }, [activeTab]);
+    const savedAlerts = localStorage.getItem('jobAlerts');
+    if (savedAlerts) {
+      setJobAlerts(JSON.parse(savedAlerts));
+    }
+  }, []);
+
+  // Save alerts to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('jobAlerts', JSON.stringify(jobAlerts));
+    setStats(prev => ({ ...prev, jobAlerts: jobAlerts.length }));
+  }, [jobAlerts]);
+
+  // Update matching jobs whenever jobs or alerts change
+  useEffect(() => {
+    updateMatchingJobs();
+  }, [jobs, jobAlerts]);
+
+  // Load favorites from database
+  const loadFavorites = async () => {
+    try {
+      const response = await favoriteAPI.getFavorites();
+      const favJobs = response.data || [];
+      setFavoriteJobs(favJobs);
+      const ids = favJobs.map(job => job.id);
+      setFavoriteIds(ids);
+      setStats(prev => ({ ...prev, favoriteJobs: favJobs.length }));
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -29,21 +62,21 @@ const ApplicantDashboard = () => {
       const applications = applicationsRes.data || [];
       setAppliedJobs(applications);
       
-      const savedFavorites = JSON.parse(localStorage.getItem('favoriteJobs') || '[]');
-      const favoriteJobDetails = (jobsResponse.data || []).filter(job => savedFavorites.includes(job.id));
-      setFavoriteJobs(favoriteJobDetails);
-      
-      setStats({
+      setStats(prev => ({
+        ...prev,
         appliedJobs: applications.length,
-        favoriteJobs: savedFavorites.length,
-        jobAlerts: 5,
-      });
+      }));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+    loadFavorites();
+  }, [activeTab]);
 
   const handleApply = async (jobId) => {
     try {
@@ -59,21 +92,43 @@ const ApplicantDashboard = () => {
     }
   };
 
-  const handleFavorite = (jobId) => {
-    const savedFavorites = JSON.parse(localStorage.getItem('favoriteJobs') || '[]');
-    let newFavorites;
-    let message;
-    
-    if (savedFavorites.includes(jobId)) {
-      newFavorites = savedFavorites.filter(id => id !== jobId);
-      message = 'Removed from favorites';
-    } else {
-      newFavorites = [...savedFavorites, jobId];
-      message = 'Added to favorites';
+  // Add to favorites
+  const handleAddFavorite = async (jobId) => {
+    try {
+      await favoriteAPI.addFavorite(jobId);
+      alert('Added to favorites ⭐');
+      loadFavorites();
+      fetchDashboardData();
+    } catch (error) {
+      if (error.response?.status === 400) {
+        alert('Job already in favorites');
+      } else {
+        console.error('Error adding favorite:', error);
+        alert('Failed to add to favorites');
+      }
     }
-    localStorage.setItem('favoriteJobs', JSON.stringify(newFavorites));
-    alert(message);
-    fetchDashboardData();
+  };
+
+  // Remove from favorites
+  const handleRemoveFavorite = async (jobId) => {
+    try {
+      await favoriteAPI.removeFavorite(jobId);
+      alert('Removed from favorites ❌');
+      loadFavorites();
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      alert('Failed to remove from favorites');
+    }
+  };
+
+  // Toggle favorite
+  const handleFavorite = (jobId) => {
+    if (favoriteIds.includes(jobId)) {
+      handleRemoveFavorite(jobId);
+    } else {
+      handleAddFavorite(jobId);
+    }
   };
 
   const handleViewJobDetails = (job) => {
@@ -86,12 +141,60 @@ const ApplicantDashboard = () => {
     navigate('/login');
   };
 
+  // Create a new job alert
+  const createJobAlert = () => {
+    const keywordInput = document.getElementById('alertKeyword');
+    const keyword = keywordInput.value.trim();
+    
+    if (!keyword) {
+      alert('Please enter a keyword for the job alert');
+      return;
+    }
+    
+    if (jobAlerts.some(alert => alert.keyword.toLowerCase() === keyword.toLowerCase())) {
+      alert('You already have an alert for this keyword');
+      return;
+    }
+    
+    const newAlert = {
+      keyword: keyword,
+      createdAt: new Date().toISOString()
+    };
+    
+    setJobAlerts([...jobAlerts, newAlert]);
+    keywordInput.value = '';
+    alert(`Job alert created for "${keyword}"`);
+  };
+
+  // Delete a job alert
+  const deleteJobAlert = (index) => {
+    const deletedAlert = jobAlerts[index];
+    const newAlerts = jobAlerts.filter((_, i) => i !== index);
+    setJobAlerts(newAlerts);
+    alert(`Removed alert for "${deletedAlert.keyword}"`);
+  };
+
+  // Update matching jobs based on all alerts
+  const updateMatchingJobs = () => {
+    if (jobAlerts.length === 0 || jobs.length === 0) {
+      setMatchingAlertJobs([]);
+      return;
+    }
+    
+    const matching = jobs.filter(job => {
+      const jobText = `${job.title} ${job.description || ''} ${job.category || ''} ${job.location || ''}`.toLowerCase();
+      return jobAlerts.some(alert => jobText.includes(alert.keyword.toLowerCase()));
+    });
+    
+    setMatchingAlertJobs(matching);
+  };
+
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: 'dashboard' },
     { id: 'applied', label: 'Applied Jobs', icon: 'document' },
     { id: 'favorite', label: 'Favorite Jobs', icon: 'star' },
     { id: 'alerts', label: 'Job Alert', icon: 'bell' },
-    { id: 'settings', label: 'Settings', icon: 'setting' },
+    { id: 'profile', label: 'Profile', icon: 'setting' },
   ];
 
   const isJobApplied = (jobId) => {
@@ -99,12 +202,23 @@ const ApplicantDashboard = () => {
   };
 
   const isJobFavorited = (jobId) => {
-    const favorites = JSON.parse(localStorage.getItem('favoriteJobs') || '[]');
-    return favorites.includes(jobId);
+    return favoriteIds.includes(jobId);
   };
 
+  // Loading screen with brand logo
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading dashboard...</div>;
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Icon name="briefcase" className="w-12 h-12" />
+            <span className="text-3xl font-bold text-red-600">JobConnect</span>
+          </div>
+          <div className="inline-block w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-2 text-gray-500">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -225,10 +339,12 @@ const ApplicantDashboard = () => {
                     <button
                       onClick={() => handleFavorite(job.id)}
                       className={`px-3 py-2 rounded text-sm border flex items-center justify-center ${
-                        isJobFavorited(job.id) ? 'bg-yellow-100 border-yellow-400' : 'bg-white border-gray-300'
+                        isJobFavorited(job.id)
+                          ? 'bg-yellow-100 border-yellow-400 text-yellow-600'
+                          : 'bg-white border-gray-300 text-gray-400'
                       }`}
                     >
-                      <Icon name="star" className="w-4 h-4" />
+                      {isJobFavorited(job.id) ? '★' : '☆'}
                     </button>
                   </div>
                 </div>
@@ -266,10 +382,12 @@ const ApplicantDashboard = () => {
                     <div>
                       <span className={`px-3 py-1 rounded-full text-sm ${
                         app.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        app.status === 'SHORTLISTED' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
+                        app.status === 'SHORTLISTED' ? 'bg-purple-100 text-purple-800' :
+                        app.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                        app.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
                       }`}>
-                        {app.status}
+                        {app.status || 'PENDING'}
                       </span>
                     </div>
                   </div>
@@ -324,42 +442,94 @@ const ApplicantDashboard = () => {
         {activeTab === 'alerts' && (
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Job Alerts</h2>
-            <div className="bg-white rounded-lg p-6">
-              <p className="text-gray-600 mb-4">Get notified when new jobs match your preferences.</p>
+            
+            {/* Create New Alert */}
+            <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-medium mb-4">Create New Job Alert</h3>
               <div className="flex gap-4">
-                <input type="text" placeholder="Enter job keywords (e.g., Software Engineer)" className="flex-1 px-4 py-2 border rounded-lg" />
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2">
+                <input
+                  type="text"
+                  id="alertKeyword"
+                  placeholder="Enter job keywords (e.g., Software Engineer, Remote, Manila)"
+                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={createJobAlert}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+                >
                   <Icon name="bell" className="w-4 h-4" />
                   Create Alert
                 </button>
               </div>
+              <p className="text-xs text-gray-500 mt-2">
+                You'll see jobs that match your keywords in the "Matching Jobs" section below.
+              </p>
             </div>
+
+            {/* Existing Alerts */}
+            <h3 className="text-lg font-medium mb-3">Your Job Alerts ({jobAlerts.length})</h3>
+            {jobAlerts.length === 0 ? (
+              <div className="bg-white rounded-lg p-8 text-center text-gray-500">
+                No job alerts created yet. Create one above to see matching jobs.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {jobAlerts.map((alert, index) => (
+                  <div key={index} className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="bell" className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">Keyword: "{alert.keyword}"</span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Created: {new Date(alert.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => deleteJobAlert(index)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Icon name="delete" className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Matching Jobs based on alerts */}
+            {jobAlerts.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-3">
+                  Jobs Matching Your Alerts ({matchingAlertJobs.length})
+                </h3>
+                {matchingAlertJobs.length === 0 ? (
+                  <div className="bg-white rounded-lg p-8 text-center text-gray-500">
+                    No jobs match your alerts yet. Check back later!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {matchingAlertJobs.map((job) => (
+                      <div key={job.id} className="bg-white rounded-lg shadow p-4 hover:shadow-md transition">
+                        <h4 className="font-semibold text-gray-800">{job.title}</h4>
+                        <p className="text-sm text-gray-600">{job.employerName || 'Company'}</p>
+                        <p className="text-sm text-gray-500 mt-1">{job.location}</p>
+                        <p className="text-sm text-blue-600 mt-1">{job.salaryRange}</p>
+                        <button
+                          onClick={() => handleViewJobDetails(job)}
+                          className="mt-3 text-blue-600 text-sm hover:underline"
+                        >
+                          View Details →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {activeTab === 'settings' && (
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Settings</h2>
-            <div className="bg-white rounded-lg p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Full Name</label>
-                <input type="text" defaultValue={user.fullName || ''} className="w-full px-4 py-2 border rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input type="email" defaultValue={user.email || ''} className="w-full px-4 py-2 border rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Resume</label>
-                <input type="file" className="w-full px-4 py-2 border rounded-lg" accept=".pdf,.doc,.docx" />
-              </div>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2">
-                <Icon name="checked" className="w-4 h-4" />
-                Save Changes
-              </button>
-            </div>
-          </div>
-        )}
+        {activeTab === 'profile' && <ProfileContent />}
 
         {/* Job Details Modal */}
         {showJobModal && selectedJob && (

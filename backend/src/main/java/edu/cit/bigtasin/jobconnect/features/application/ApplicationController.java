@@ -83,7 +83,7 @@ public class ApplicationController {
         return ResponseEntity.ok(result);
     }
 
-    // Get applications for a job (employer only)
+    // Get applications for a job (employer only) - UPDATED with resume URL
     @GetMapping("/job/{jobId}")
     public ResponseEntity<?> getJobApplications(@PathVariable Long jobId) {
         List<Application> applications = applicationRepository.findByJobId(jobId);
@@ -96,12 +96,31 @@ public class ApplicationController {
 
             User seeker = userRepository.findById(app.getSeekerId()).orElse(null);
             if (seeker != null) {
-                item.put("seekerName", seeker.getFullName());
-                item.put("seekerEmail", seeker.getEmail());
+                item.put("seekerName", seeker.getFullName() != null ? seeker.getFullName() : seeker.getUsername());
+                item.put("email", seeker.getEmail());
+                // Add resume URL if available
+                item.put("resumeUrl", seeker.getResumeUrl());
             }
             return item;
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    // UPDATE application status (Approve/Reject/Shortlist)
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateApplicationStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String newStatus = request.get("status");
+        
+        Application application = applicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+        
+        application.setStatus(newStatus);
+        applicationRepository.save(application);
+        
+        return ResponseEntity.ok(Map.of(
+            "message", "Status updated successfully",
+            "status", newStatus
+        ));
     }
 }
